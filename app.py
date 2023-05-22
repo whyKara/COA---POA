@@ -516,7 +516,8 @@ def main():
             for j in range(num_tests):
                 st.write(f"Internal Test #{j+1} for Course Outcome #{i+1}")
                 test_name = st.text_input(f"Internal Test #{j+1} Name", key=f"test_name_{i+1}_{j+1}_input")
-                num_questions = st.number_input(f"Number of Questions for Internal Test #{j+1}", min_value=1, value=1)
+                num_questions = st.number_input(f"Number of Questions for Internal Test #{j+1}", min_value=1, value=1, key =f"questions_{j+1}_{i+1}_input")
+                # added a key for num_questions combining {j+1} & {i+1} to create a unique key
 
                 questions = []
                 for k in range(num_questions):
