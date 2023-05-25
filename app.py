@@ -466,39 +466,10 @@ def main():
     
     # Page selection
     page = st.sidebar.selectbox("Select Page", ["Course Entry", "Student Marks Entry"])
-    
+
     if page == "Course Entry":
         st.header("Course Entry")
-        
-        # # Course details input
-        # course_name = st.text_input("Course Name")
-        # course_description = st.text_area("Course Description")
-        
-        # # Course outcomes input
-        # course_outcomes = []
-        # num_outcomes = st.number_input("Number of Course Outcomes", min_value=1, value=1)
-        
-        # for i in range(num_outcomes):
-        #     outcome_description = st.text_input(f"Course Outcome #{i+1} Description")
-        #     total_marks = st.number_input(f"Total Marks for Course Outcome #{i+1}", min_value=0, value=100)
-            
-        #     num_tests = st.number_input(f"Number of Internal Tests for Course Outcome #{i+1}", min_value=1, value=1)
-        #     tests = []
-            
-        #     for j in range(num_tests):
-        #         test_name = st.text_input(f"Internal Test #{j+1} Name")
-                
-        #         num_questions = st.number_input(f"Number of Questions for Internal Test #{j+1}", min_value=1, value=1)
-        #         questions = []
-                
-        #         for k in range(num_questions):
-        #             question_marks = st.number_input(f"Marks for Question #{k+1}", min_value=0, value=25)
-        #             questions.append({"marks": question_marks})
-                
-        #         tests.append({"name": test_name, "questions": questions})
-            
-        #     course_outcomes.append({"description": outcome_description, "total_marks": total_marks, "tests": tests})
-        
+
         # Form inputs
         course_name = st.text_input("Course Name", key="course_name_input")
         course_description = st.text_area("Course Description", key="course_description_input")
@@ -507,21 +478,21 @@ def main():
         num_outcomes = st.number_input("Number of Course Outcomes", min_value=1, value=1)
 
         for i in range(num_outcomes):
-            st.write(f"Course Outcome #{i+1}")
+            st.subheader(f"Course Outcome #{i+1}")
             outcome_description = st.text_area(f"Course Outcome #{i+1} Description", key=f"outcome_description_{i+1}_input")
             total_marks = st.number_input(f"Total Marks for Course Outcome #{i+1}", key=f"total_marks_{i+1}_input")
             num_tests = st.number_input(f"Number of Internal Tests for Course Outcome #{i+1}", min_value=1, value=1)
 
             tests = []
             for j in range(num_tests):
-                st.write(f"Internal Test #{j+1} for Course Outcome #{i+1}")
+                st.subheader(f"Internal Test #{j+1} for Course Outcome #{i+1}")
                 test_name = st.text_input(f"Internal Test #{j+1} Name", key=f"test_name_{i+1}_{j+1}_input")
-                num_questions = st.number_input(f"Number of Questions for Internal Test #{j+1}", min_value=1, value=1, key =f"questions_{j+1}_{i+1}_input")
+                num_questions = st.number_input(f"Number of Questions for Internal Test #{j+1}", min_value=1, value=1, key=f"questions_{j+1}_{i+1}_input")
                 # added a key for num_questions combining {j+1} & {i+1} to create a unique key
 
                 questions = []
                 for k in range(num_questions):
-                    st.write(f"Question #{k+1} for Internal Test #{j+1}")
+                    st.subheader(f"Question #{k+1} for Internal Test #{j+1}")
                     question_marks = st.number_input(f"Marks for Question #{k+1}", key=f"question_marks_{i+1}_{j+1}_{k+1}_input")
                     questions.append({
                         'marks': question_marks
