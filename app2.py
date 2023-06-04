@@ -60,19 +60,32 @@ def read_excel_file(file, sheet_name):
             data['Test ID'] = test_id
 
             # Retrieve the questions, marks, and CO attainment values for the current test
-            for row in range(19, 21):
-                for col_offset in range(0, 4):
-                    cell = sheet.cell(row=row, column=col + col_offset)
-                    question_id = cell.value
-                    question_marks = sheet.cell(row=22, column=col + col_offset).value
-                    co_attainment = sheet.cell(row=23, column=col + col_offset).value
-
-                    # Check if the question ID is not empty
-                    if question_id:
-                        # Insert the data into the database
-                        data['Question ID'] = question_id
-                        data['Question Marks'] = question_marks
+            for row in range(19, 22):
+                for col_offset in range(1, 5):
+                    if col==3:
+                        cell = sheet.cell(row=row, column=col + col_offset)
+                    else:
+                        cell=sheet.cell(row=row, column=col+ (col_offset-1))
+                        
+                    #question_id = cell.value
+                    #question_marks = sheet.cell(row=22, column=col + col_offset).value
+                    #co_attainment = sheet.cell(row=23, column=col + col_offset).value
+                    if row==19:
+                        question_marks=cell.value
+                        data['Question Marks']=question_marks
+                        #print(question_marks)
+                    elif row==20:
+                        co_attainment=cell.value
                         data['CO Attainment'] = co_attainment
+                    elif row==21:
+                        question_id=cell.value
+                        data['Question ID'] = question_id
+                    # Check if the question ID is not empty
+                    #if question_id:
+                        # Insert the data into the database
+                        #data['Question ID'] = question_id
+                        #data['Question Marks'] = question_marks
+                        #data['CO Attainment'] = co_attainment
 
                         insert_data_to_db(data)
                     else:
