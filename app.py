@@ -351,6 +351,41 @@ import streamlit as st
 import sqlite3
 import pandas as pd
 
+def read_excel_and_store(file):
+    # Read the Excel file
+    df = pd.read_excel(file)
+
+    # Connect to the database
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+
+    # Store the data in the database
+    for index, row in df.iterrows():
+        # Extract the necessary data from the Excel sheet
+        roll_no = row['Roll No']
+        course_id = row['Course ID']
+        test_id = row['Test ID']
+        marks = {}
+
+        # Iterate over the columns to extract marks for each question
+        for col in df.columns:
+            if col.startswith('Question'):
+                question_id = int(col.split()[1])
+                marks_obtained = row[col]
+                marks[question_id] = marks_obtained
+
+        # Insert the student marks into the database
+        for question_id, marks_obtained in marks.items():
+            cursor.execute('''
+                INSERT INTO Students_Marks (students_rollno, test_id, question_id, marks_obtained)
+                VALUES (?, ?, ?, ?)
+            ''', (roll_no, test_id, question_id, marks_obtained))
+
+    # Commit the changes and close the connection
+    conn.commit()
+    conn.close()
+
+
 
 # Function to fetch course details from the database
 def fetch_courses():
@@ -463,59 +498,67 @@ def fetch_student_marks():
 def main():
     st.title("Course and Student Marks Entry")
     st.write("---")
-    
+
     # Page selection
-    page = st.sidebar.selectbox("Select Page", ["Course Entry", "Student Marks Entry"])
+    page = st.sidebar.selectbox("Select Page", ["Course Entry", "Student Marks Entry", "Excel to DB"])
+
+
 
     if page == "Course Entry":
         st.header("Course Entry")
 
-        # Form inputs
-        course_name = st.text_input("Course Name", key="course_name_input")
-        course_description = st.text_area("Course Description", key="course_description_input")
+        # Course input fields
+        course_name = st.text_input("Course Name", value="Course Name")
+        course_description = st.text_area("Course Description", value="Course Description")
+
+        # Course outcome input fields
+        num_course_outcomes = st.number_input("Number of Course Outcomes", min_value=1, max_value=5, step=1, value=1)
+
         course_outcomes = []
+        for i in range(num_course_outcomes):
+            outcome_description = st.text_input(f"Course Outcome {i+1} Description", value=f"Course Outcome {i+1}", key=f"outcome_description_{i+1}")
+            course_outcomes.append(outcome_description)
 
-        num_outcomes = st.number_input("Number of Course Outcomes", min_value=1, value=1)
+        if st.button("Insert Course"):
+            insert_course(course_name, course_description, course_outcomes)
+            st.success("Course details inserted successfully.")
 
-        for i in range(num_outcomes):
-            st.subheader(f"Course Outcome #{i+1}")
-            outcome_description = st.text_area(f"Course Outcome #{i+1} Description", key=f"outcome_description_{i+1}_input")
-            total_marks = st.number_input(f"Total Marks for Course Outcome #{i+1}", key=f"total_marks_{i+1}_input")
-            num_tests = st.number_input(f"Number of Internal Tests for Course Outcome #{i+1}", min_value=1, value=1)
+        st.write("---")
+        st.subheader("Internal Tests") 
 
-            tests = []
-            for j in range(num_tests):
-                st.subheader(f"Internal Test #{j+1} for Course Outcome #{i+1}")
-                test_name = st.text_input(f"Internal Test #{j+1} Name", key=f"test_name_{i+1}_{j+1}_input")
-                num_questions = st.number_input(f"Number of Questions for Internal Test #{j+1}", min_value=1, value=1, key=f"questions_{j+1}_{i+1}_input")
-                # added a key for num_questions combining {j+1} & {i+1} to create a unique key
+        # Internal test input fields
+        num_internal_tests = st.number_input("Number of Internal Tests", min_value=2, max_value=4, step=1, value=2)
 
-                questions = []
-                for k in range(num_questions):
-                    st.subheader(f"Question #{k+1} for Internal Test #{j+1}")
-                    question_marks = st.number_input(f"Marks for Question #{k+1}", key=f"question_marks_{i+1}_{j+1}_{k+1}_input")
-                    questions.append({
-                        'marks': question_marks
-                    })
+        internal_tests = []
+        test_questions = []
+        for i in range(num_internal_tests):
+            test_name = st.text_input(f"Internal Test {i+1} Name", value=f"IT {i+1}", key=f"test_name_{i+1}")
+            internal_tests.append(test_name)
 
-                tests.append({
-                    'name': test_name,
-                    'questions': questions
-                })
+            # Question input fields
+            num_questions = st.number_input(f"Number of Questions for Internal Test {i+1}", min_value=1, max_value=5, step=1, value=1)
+            question_marks = []
+            total_marks = 0
+            for j in range(num_questions):
+                question = st.text_input(f"Question {j+1} for Internal Test {i+1}", value=f"Question {j+1}", key=f"question_{i+1}_{j+1}")
+                marks = st.number_input(f"Marks for Question {j+1} (Max 25)", min_value=1, max_value=25, step=1, value=1, key=f"marks_{i+1}_{j+1}")
+                question_marks.append(marks)
+                total_marks += marks
 
-            course_outcomes.append({
-                'description': outcome_description,
-                'total_marks': total_marks,
-                'tests': tests
-            })
+            if total_marks != 25:
+                st.error(f"Total marks for questions under Internal Test {i+1} should be 25. Please adjust the marks.")
 
-        
-        
-        # Submit button
-        if st.button("Submit"):
-            insert_course_details(course_name, course_description, course_outcomes)
-            st.success("Course details submitted successfully.")
-    
+            test_questions.append(question_marks)
+
+        # Course entry submit button
+        if st.button("Submit Course"):
+            if sum([sum(questions) for questions in test_questions]) != 25 * num_internal_tests:
+                st.error("Total marks for questions across all internal tests should be 25 per test. Please adjust the marks.")
+            else:
+                insert_course(course_name, course_description, internal_tests, course_outcomes, test_questions)
+                st.success("Course details submitted successfully.")
+    # Rest of the code...
+
     elif page == "Student Marks Entry":
         
         st.write("---")
@@ -569,6 +612,17 @@ def main():
         if st.button("Submit"):
             insert_student_marks(selected_course_id, selected_test_id, question_marks)
             st.success("Student marks submitted successfully.")
+
+    elif page == "Excel to DB":
+        st.header("Excel to Database")
+
+        # File upload
+        file = st.file_uploader("Upload Excel File", type=["xlsx"])
+        if file is not None:
+            if st.button("Read Excel and Store"):
+                read_excel_and_store(file)
+                st.success("Excel data stored in the database successfully.")
+
 
 if __name__ == "__main__":
     main()
