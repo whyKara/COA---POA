@@ -52,6 +52,9 @@ def read_excel_file(file, sheet_name):
         }
 
         # Get the test IDs and their respective column indices
+        qi=[]
+        qm=[]
+        co=[]
         test_ids = [sheet.cell(row=18, column=3).value, sheet.cell(row=18, column=12).value]
         test_columns = [3, 12]
 
@@ -72,28 +75,32 @@ def read_excel_file(file, sheet_name):
                     #co_attainment = sheet.cell(row=23, column=col + col_offset).value
                     if row==19:
                         question_marks=cell.value
-                        data['Question Marks']=question_marks
+                        qm.append(question_marks)
                         #print(question_marks)
                     elif row==20:
                         co_attainment=cell.value
-                        data['CO Attainment'] = co_attainment
+                        co.append(co_attainment)
                     elif row==21:
                         question_id=cell.value
-                        data['Question ID'] = question_id
+                        qi.append(question_id)
                     # Check if the question ID is not empty
                     #if question_id:
                         # Insert the data into the database
                         #data['Question ID'] = question_id
                         #data['Question Marks'] = question_marks
                         #data['CO Attainment'] = co_attainment
-
-                        insert_data_to_db(data)
                     else:
                         # Break the loop if an empty cell is encountered
                         break
 
+        for i in range(qm):
+            data['Question ID']=qi[i]
+            data['Question Marks']=qm[i]
+            data['CO Attainment']=co[i]
+
     except Exception as e:
         st.error(f"Error occurred: {str(e)}")
+
 
 # Streamlit app
 def main():
